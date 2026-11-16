@@ -1,0 +1,35 @@
+# Public watchlist. Safe to commit - it lists what you WATCH, not what you OWN.
+# market: "US" | "ASX" | "VN"
+# Yahoo symbols: US = AAPL, ASX = BHP.AX, benchmark ASX 200 = ^AXJO
+# VN symbols use the plain ticker (VRE, GAS, ...); VN-Index = VNINDEX
+
+start_date = "2018-01-01"
+
+[benchmarks]
+US = "^GSPC"
+ASX = "^AXJO"
+VN = "VNINDEX"
+
+[[symbols]]
+symbol = "AAPL"
+market = "US"
+
+[[symbols]]
+symbol = "MSFT"
+market = "US"
+
+[[symbols]]
+symbol = "BHP.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "CBA.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "VRE"
+market = "VN"
+
+[[symbols]]
+symbol = "GAS"
+market = "VN"

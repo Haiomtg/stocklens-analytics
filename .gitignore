@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# PRIVATE DATA - never commit your real holdings or live database
+data/private/*
+!data/private/.gitkeep
+data/stocklens.db
+data/stocklens.db-journal
+config/private.toml
+*.private.csv
+
+# Generated output
+reports_out/
+.DS_Store
+.env

@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "stocklens-analytics"
+version = "0.1.0"
+description = "Market data, portfolio tracking, risk analytics, backtesting and honest ML experiments for ASX, US and Vietnamese equities. Educational tool - not financial advice."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Van Truong Hai" }]
+dependencies = [
+    "pandas>=2.0",
+    "numpy>=1.24",
+    "scikit-learn>=1.3",
+    "scipy>=1.10",
+    "plotly>=5.18",
+    "streamlit>=1.50",
+]
+
+[project.optional-dependencies]
+# vnstock is NOT listed: as of Nov 2026 PyPI has it quarantined (cannot be installed). See ingest/vietnam.py.
+data = ["yfinance>=0.2.40"]
+dev = ["pytest>=7", "statsmodels>=0.14"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

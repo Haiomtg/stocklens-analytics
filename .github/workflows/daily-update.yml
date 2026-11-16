@@ -1,0 +1,37 @@
+name: Daily data update (pipeline health check)
+
+# What this job does: runs the real fetchers against the PUBLIC watchlist every weekday,
+# applies the data-quality checks, and uploads the database as a downloadable artifact.
+# It proves the pipeline still works (free data sources break!) and fails loudly if not.
+#
+# What it deliberately does NOT do: touch your private portfolio. Your real transactions
+# never leave your computer. For your own daily update, run the same command locally
+# (see docs/BUILD_GUIDE.md, Stage 1) on a schedule with launchd/cron.
+#
+# It also does NOT commit the SQLite file to the repo - a binary changing every day would
+# bloat the git history quickly.
+
+on:
+  schedule:
+    - cron: "30 8 * * 1-5"   # 08:30 UTC, Mon-Fri
+  workflow_dispatch:
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install with live data fetchers
+        run: pip install -e ".[data]"
+      - name: Update database
+        run: python -m stocklens.ingest.update --watchlist config/watchlist.toml --db data/stocklens.db
+      - name: Upload database artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: stocklens-db
+          path: data/stocklens.db
+          retention-days: 14

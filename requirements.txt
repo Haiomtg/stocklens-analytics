@@ -1,0 +1,3 @@
+# Used by Streamlit Community Cloud and `pip install -r requirements.txt`.
+# (The live fetchers yfinance/vnstock are NOT needed to run the demo app.)
+-e .
