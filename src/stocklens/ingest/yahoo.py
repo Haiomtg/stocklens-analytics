@@ -49,20 +49,35 @@ class YahooFetcher:
     def fetch_fundamentals(self, symbol: str) -> dict:
         import yfinance as yf
 
-        info = yf.Ticker(symbol).info or {}
-        dy = info.get("dividendYield")
-        # Yahoo has switched between fraction (0.04) and percent (4.0) over time.
-        # No real dividend yield is above 100%, so >1 means it arrived as a percent.
-        if dy is not None and dy > 1:
-            dy = dy / 100
-        de = info.get("debtToEquity")  # Yahoo reports this as a percent (45.2 = 0.452)
-        return {
-            "symbol": symbol,
-            "sector": info.get("sector"),
-            "market_cap": info.get("marketCap"),
-            "pe": info.get("trailingPE"),
-            "pb": info.get("priceToBook"),
-            "roe": info.get("returnOnEquity"),
-            "debt_to_equity": (de / 100) if de is not None else None,
-            "dividend_yield": dy,
-        }
+        return map_fundamentals(symbol, yf.Ticker(symbol).info or {})
+
+
+def map_fundamentals(symbol: str, info: dict) -> dict:
+    """Turn Yahoo's `info` dict into our fundamentals row, using fractions (0.03 = 3%), not percents.
+
+    Units are the classic trap here:
+      * dividendYield: recent Yahoo versions send a PERCENT (0.31 means 0.31%), older ones a fraction.
+        A rule like "convert if > 1" misreads yields below 1%. So we compute dividendRate / price,
+        which has no unit ambiguity, and only fall back to dividendYield / 100.
+      * debtToEquity: Yahoo sends a percent (84.3 means 0.843).
+      * returnOnEquity: already a fraction. (Apple's is above 1.0 because buybacks shrank its equity.)
+    """
+    price = info.get("currentPrice") or info.get("regularMarketPrice")
+    rate = info.get("dividendRate")
+    if rate and price:
+        dy = rate / price
+    elif info.get("dividendYield") is not None:
+        dy = info["dividendYield"] / 100
+    else:
+        dy = None
+    de = info.get("debtToEquity")
+    return {
+        "symbol": symbol,
+        "sector": info.get("sector"),
+        "market_cap": info.get("marketCap"),
+        "pe": info.get("trailingPE"),
+        "pb": info.get("priceToBook"),
+        "roe": info.get("returnOnEquity"),
+        "debt_to_equity": (de / 100) if de is not None else None,
+        "dividend_yield": dy,
+    }
