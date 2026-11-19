@@ -2,13 +2,16 @@
 from __future__ import annotations
 
 import os
+import sys
 from pathlib import Path
 
 import streamlit as st
 
-from stocklens.context import Context, load_context
-
 ROOT = Path(__file__).resolve().parents[1]
+# Make `import stocklens` work even if the editable install is broken (src layout).
+sys.path.insert(0, str(ROOT / "src"))
+
+from stocklens.context import Context, load_context  # noqa: E402
 DISCLAIMER = "Educational tool - not financial advice. Data is from free sources and may contain errors."
 
 
