@@ -16,7 +16,7 @@ st.caption(DISCLAIMER)
 ctx = get_context()
 
 if ctx.portfolio_returns is None or ctx.holdings is None:
-    st.warning("Risk needs a transactions file (see sidebar).")
+    st.warning(ctx.portfolio_error or "Risk needs a transactions file (see sidebar).")
     st.stop()
 
 rs = risk.risk_summary(ctx.portfolio_returns, ctx.benchmark_returns)

@@ -42,3 +42,19 @@ def test_update_cli_survives_failing_symbols(tmp_path, monkeypatch):
     assert code == 0
     conn = db.connect(tmp_path / "x.db")
     assert db.last_date(conn, "GOOD") is not None and db.last_date(conn, "BAD") is None
+
+
+def test_mismatched_transactions_do_not_crash_the_app(tmp_path):
+    """Real database + the sample trades (SYN... tickers) used to raise KeyError and kill every page."""
+    from stocklens import db
+
+    real = tmp_path / "real.db"
+    conn = db.connect(real)
+    db.upsert_prices(conn, sample.make_prices(n_days=400)["SYNUS1"], "AAPL", "US")
+    conn.close()
+    tx = tmp_path / "tx.csv"
+    sample.build_sample_db(tmp_path / "other.db", tx)   # writes sample trades for SYN... symbols
+    ctx = load_context(real, tx)
+    assert ctx.holdings is None and ctx.portfolio_returns is None
+    assert "not in the database" in ctx.portfolio_error
+    assert list(ctx.adj.columns) == ["AAPL"]            # prices still load, so Home/Deep-Dive keep working

@@ -55,20 +55,23 @@ with tab1:
                  f"Sharpe **{oos['oos_sharpe']:.2f}** vs buy & hold {oos['oos_buy_hold_sharpe']:.2f}.")
 
 with tab2:
-    st.write("Each month-end, hold the top-N symbols by past return, equal weight. Compared with holding all of them equally.")
-    top_n = st.slider("Top N", 1, max(1, len(ctx.tradable) - 1), min(3, len(ctx.tradable)))
-    lb2 = st.slider("Lookback (days)", 20, 300, 126, key="lb2")
-    cost2 = st.slider("Transaction cost (bps)", 0, 100, 20, key="c2")
-    px_ = ctx.adj[ctx.tradable]
-    w = bt.cross_sectional_momentum_weights(px_, lb2, top_n)
-    r = bt.run_portfolio_backtest(px_, w, cost2)
-    ew = bt.run_portfolio_backtest(px_, pd.DataFrame(1 / px_.shape[1], index=px_.index, columns=px_.columns), cost2)
-    fig = go.Figure()
-    fig.add_scatter(x=r.returns.index, y=(1 + r.returns).cumprod(), name=f"Top-{top_n} momentum")
-    fig.add_scatter(x=ew.returns.index, y=(1 + ew.returns).cumprod(), name="Equal-weight all")
-    fig.update_layout(height=380, margin=dict(t=20), legend=dict(orientation="h"))
-    st.plotly_chart(fig, width="stretch")
-    st.dataframe(pd.DataFrame({"Momentum": r.metrics, "Equal-weight": ew.metrics}).drop(index="n_days").style.format("{:.3f}"), width="stretch")
+    if len(ctx.tradable) < 3:
+        st.info("Cross-sectional momentum needs at least 3 symbols in the database.")
+    else:
+            st.write("Each month-end, hold the top-N symbols by past return, equal weight. Compared with holding all of them equally.")
+            top_n = st.slider("Top N", 1, max(1, len(ctx.tradable) - 1), min(3, len(ctx.tradable)))
+            lb2 = st.slider("Lookback (days)", 20, 300, 126, key="lb2")
+            cost2 = st.slider("Transaction cost (bps)", 0, 100, 20, key="c2")
+            px_ = ctx.adj[ctx.tradable]
+            w = bt.cross_sectional_momentum_weights(px_, lb2, top_n)
+            r = bt.run_portfolio_backtest(px_, w, cost2)
+            ew = bt.run_portfolio_backtest(px_, pd.DataFrame(1 / px_.shape[1], index=px_.index, columns=px_.columns), cost2)
+            fig = go.Figure()
+            fig.add_scatter(x=r.returns.index, y=(1 + r.returns).cumprod(), name=f"Top-{top_n} momentum")
+            fig.add_scatter(x=ew.returns.index, y=(1 + ew.returns).cumprod(), name="Equal-weight all")
+            fig.update_layout(height=380, margin=dict(t=20), legend=dict(orientation="h"))
+            st.plotly_chart(fig, width="stretch")
+            st.dataframe(pd.DataFrame({"Momentum": r.metrics, "Equal-weight": ew.metrics}).drop(index="n_days").style.format("{:.3f}"), width="stretch")
 
 with tab3:
     st.write("Can a model predict whether a stock is higher in ~1 month better than a dumb baseline? "

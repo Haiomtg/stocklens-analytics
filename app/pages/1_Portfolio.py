@@ -17,7 +17,7 @@ st.caption(DISCLAIMER)
 ctx = get_context()
 
 if ctx.holdings is None:
-    st.warning("No transactions file found. Add one in the sidebar (columns: date, symbol, type, quantity, price, fees).")
+    st.warning(ctx.portfolio_error or "No transactions file found. Add one in the sidebar (columns: date, symbol, type, quantity, price, fees).")
     st.stop()
 
 s = tracker.summary(ctx.holdings)

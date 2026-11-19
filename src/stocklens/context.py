@@ -26,6 +26,7 @@ class Context:
     portfolio_returns: pd.Series | None
     benchmark: str | None
     benchmark_returns: pd.Series | None
+    portfolio_error: str | None = None   # why the portfolio could not be built (shown on the pages)
 
     @property
     def tradable(self) -> list[str]:
@@ -52,12 +53,23 @@ def load_context(db_path: str | Path, transactions_path: str | Path | None = Non
     bench_ret = adj[bench].pct_change() if bench else None
 
     tx = holdings = port_ret = None
+    error = None
     if transactions_path and Path(transactions_path).exists():
-        tx = tracker.load_transactions(transactions_path)
-        sectors = fundamentals["sector"] if "sector" in fundamentals else None
-        holdings = tracker.holdings_table(tx, close.ffill().iloc[-1], sectors)
-        port_ret = pret.twr_daily_returns(tx, close)
-    return Context(close, adj, fundamentals, symbols, flags, tx, holdings, port_ret, bench, bench_ret)
+        try:
+            tx = tracker.load_transactions(transactions_path)
+            missing = sorted(set(tx["symbol"]) - set(close.columns))
+            if missing:
+                raise KeyError(
+                    f"your transactions mention symbols that are not in the database: {missing}. "
+                    "Use the same ticker names as your watchlist (e.g. BHP.AX), or point the sidebar at the right files."
+                )
+            sectors = fundamentals["sector"] if "sector" in fundamentals else None
+            holdings = tracker.holdings_table(tx, close.ffill().iloc[-1], sectors)
+            port_ret = pret.twr_daily_returns(tx, close)
+        except (KeyError, ValueError) as exc:  # bad/mismatched transactions must not take the whole app down
+            tx = holdings = port_ret = None
+            error = str(exc).strip("'\"")
+    return Context(close, adj, fundamentals, symbols, flags, tx, holdings, port_ret, bench, bench_ret, error)
 
 
 def portfolio_risk(ctx: Context) -> dict | None:
