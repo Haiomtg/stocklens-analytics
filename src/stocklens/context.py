@@ -50,7 +50,7 @@ def load_context(db_path: str | Path, transactions_path: str | Path | None = Non
     conn.close()
 
     bench = pick_benchmark(list(adj.columns), benchmark)
-    bench_ret = adj[bench].pct_change() if bench else None
+    bench_ret = adj[bench].pct_change(fill_method=None) if bench else None
 
     tx = holdings = port_ret = None
     error = None

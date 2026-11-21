@@ -43,7 +43,13 @@ class VietnamFetcher:
         self.source = source
 
     def _stock(self, symbol: str):
-        from vnstock import Vnstock  # lazy import
+        try:
+            from vnstock import Vnstock  # lazy import
+        except ImportError as exc:
+            raise RuntimeError(
+                "vnstock is not installed (it is quarantined on PyPI) and there is no CSV file for this "
+                "ticker - put an exported price file in data/vn_csv/<TICKER>.csv (see ingest/csv_files.py)"
+            ) from exc
 
         return Vnstock().stock(symbol=symbol, source=self.source)
 

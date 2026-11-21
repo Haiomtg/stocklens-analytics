@@ -37,7 +37,7 @@ def test_update_cli_survives_failing_symbols(tmp_path, monkeypatch):
         def fetch_fundamentals(self, symbol):
             return {"symbol": symbol}
 
-    monkeypatch.setattr(update, "get_fetcher", lambda market: Fake())
+    monkeypatch.setattr(update, "get_fetcher", lambda market, symbol=None: Fake())
     code = update.main(["--watchlist", str(wl), "--db", str(tmp_path / "x.db"), "--no-fundamentals"])
     assert code == 0
     conn = db.connect(tmp_path / "x.db")

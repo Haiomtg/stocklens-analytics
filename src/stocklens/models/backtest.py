@@ -109,7 +109,7 @@ def run_backtest(price: pd.Series, position: pd.Series, cost_bps: float = 10.0, 
 def run_portfolio_backtest(prices: pd.DataFrame, weights: pd.DataFrame, cost_bps: float = 10.0, periods: int = 252) -> BacktestResult:
     prices = prices.sort_index()
     held = weights.reindex(prices.index).fillna(0.0).shift(1).fillna(0.0)  # <- no look-ahead
-    asset_ret = prices.pct_change(fill_method=None).fillna(0.0)
+    asset_ret = prices.ffill().pct_change(fill_method=None).fillna(0.0)  # closed-market days carry the last price
     turnover = held.diff().abs().sum(axis=1)
     turnover.iloc[0] = held.iloc[0].abs().sum()
     gross = (held * asset_ret).sum(axis=1)

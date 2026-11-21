@@ -2,13 +2,15 @@
 # market: "US" | "ASX" | "VN"
 # Yahoo symbols: US = AAPL, ASX = BHP.AX, benchmark ASX 200 = ^AXJO
 # VN symbols use the plain ticker (VRE, GAS, ...); VN-Index = VNINDEX
+# Vietnam data comes from CSV files you export (data/vn_csv/), so the VN lines below are off by default.
+# Your real Vietnamese list lives in config/private.toml (git-ignored).
 
 start_date = "2018-01-01"
 
 [benchmarks]
 US = "^GSPC"
 ASX = "^AXJO"
-VN = "VNINDEX"
+# VN = "VNINDEX"
 
 [[symbols]]
 symbol = "AAPL"
@@ -26,10 +28,59 @@ market = "ASX"
 symbol = "CBA.AX"
 market = "ASX"
 
+# Demo universe: large, well-known companies across sectors (a list picked today has survivorship bias)
 [[symbols]]
-symbol = "VRE"
-market = "VN"
+symbol = "NVDA"
+market = "US"
 
 [[symbols]]
-symbol = "GAS"
-market = "VN"
+symbol = "GOOGL"
+market = "US"
+
+[[symbols]]
+symbol = "AMZN"
+market = "US"
+
+[[symbols]]
+symbol = "JPM"
+market = "US"
+
+[[symbols]]
+symbol = "KO"
+market = "US"
+
+[[symbols]]
+symbol = "JNJ"
+market = "US"
+
+[[symbols]]
+symbol = "CSL.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "WES.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "NAB.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "WOW.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "RIO.AX"
+market = "ASX"
+
+[[symbols]]
+symbol = "TLS.AX"
+market = "ASX"
+
+# [[symbols]]
+# symbol = "VRE"
+# market = "VN"
+#
+# [[symbols]]
+# symbol = "GAS"
+# market = "VN"

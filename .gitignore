@@ -13,6 +13,11 @@ data/private/*
 data/stocklens.db
 data/stocklens.db-journal
 config/private.toml
+config/*.private.toml
+
+# price files you exported from a data vendor (their terms may forbid redistribution)
+data/vn_csv/*
+!data/vn_csv/.gitkeep
 *.private.csv
 
 # Generated output

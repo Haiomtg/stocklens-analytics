@@ -18,15 +18,19 @@ import pandas as pd
 
 from stocklens import db
 from stocklens.ingest import quality
+from stocklens.ingest.csv_files import CsvFetcher
 from stocklens.ingest.vietnam import VietnamFetcher
 from stocklens.ingest.yahoo import YahooFetcher
 
 log = logging.getLogger("stocklens.update")
 
 
-def get_fetcher(market: str):
+def get_fetcher(market: str, symbol: str | None = None):
     if market == "VN":
-        return VietnamFetcher()
+        csv = CsvFetcher()
+        if symbol is None or csv.has(symbol):  # your own exported file wins
+            return csv
+        return VietnamFetcher()  # vnstock; explains itself if it is not installed
     return YahooFetcher(market)  # US + ASX
 
 
@@ -42,7 +46,7 @@ def load_watchlist(path: str | Path) -> tuple[list[dict], dict, str]:
 
 def update_symbol(conn, item: dict, default_start: str, with_fundamentals: bool) -> dict:
     symbol, market = item["symbol"], item["market"]
-    fetcher = get_fetcher(market)
+    fetcher = get_fetcher(market, symbol)
     last = db.last_date(conn, symbol)
     start = (pd.Timestamp(last) - pd.Timedelta(days=7)).strftime("%Y-%m-%d") if last else default_start
     # re-fetch the last week so late corrections / adjustments overwrite stored rows

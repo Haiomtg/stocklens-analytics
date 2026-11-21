@@ -89,3 +89,24 @@ with tab3:
         st.caption(f"{out['n_folds']} walk-forward folds, {out['n_test']} test days, share of up-months {out['base_rate_up']:.0%}. "
                    "p-values use non-overlapping samples and a 2-model correction.")
         st.line_chart(out["fold_accuracy"])
+
+    st.divider()
+    st.subheader("Run on all watchlist stocks")
+    st.write("One stock can look good by luck. Testing all of them, with the p-values corrected for the number of "
+             "stocks tried, is the honest way to read the result. This takes a minute or two.")
+    if st.button("Run on all watchlist stocks"):
+        bar = st.progress(0.0, text="Starting...")
+        table = fc.run_experiment_many(
+            ctx.adj[ctx.tradable],
+            progress=lambda i, n, sym: bar.progress(i / n, text=f"Testing {sym} ({i + 1}/{n})"),
+        )
+        bar.empty()
+        st.session_state["ml_all"] = table
+    if "ml_all" in st.session_state:
+        table = st.session_state["ml_all"]
+        st.info(fc.summarize_many(table))
+        fmt = {c: "{:.3f}" for c in ["baseline_acc", "logistic_acc", "forest_acc", "p_adj_models", "p_adj_all"] if c in table}
+        fmt["best_vs_baseline_pp"] = "{:+.1f}"
+        st.dataframe(table.style.format(fmt, na_rep="-"), width="stretch")
+        st.caption("p_adj_models: best model's p-value x2 (two models tried). p_adj_all: that x number of stocks (Bonferroni). "
+                   "Compare to 0.05. Stocks are not independent (they move together), so even this correction is only a guide.")

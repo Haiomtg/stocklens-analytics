@@ -42,13 +42,22 @@ def _pct_rank(s: pd.Series, ascending: bool = True) -> pd.Series:
 
 def momentum_12_1(prices: pd.DataFrame, lookback: int = 252, skip: int = 21) -> pd.Series:
     """Return from t-lookback to t-skip (skips the latest month, a standard momentum convention).
-    Falls back to a shorter window if there isn't enough history."""
-    n = len(prices)
-    if n < 60:
-        return pd.Series(np.nan, index=prices.columns)
-    lookback = min(lookback, n - 1)
-    skip = min(skip, max(lookback // 4, 1))
-    return prices.iloc[-skip - 1] / prices.iloc[-lookback - 1] - 1
+    Falls back to a shorter window if there isn't enough history.
+
+    Each symbol uses ITS OWN trading days. A shared table of US + ASX symbols has NaN on days one
+    market is closed, so picking a row by position (the old code) returned NaN for whichever market
+    was closed on that row."""
+    out = {}
+    for sym in prices.columns:
+        s = prices[sym].dropna()
+        n = len(s)
+        if n < 60:
+            out[sym] = np.nan
+            continue
+        lb = min(lookback, n - 1)
+        sk = min(skip, max(lb // 4, 1))
+        out[sym] = s.iloc[-sk - 1] / s.iloc[-lb - 1] - 1
+    return pd.Series(out, index=prices.columns, dtype=float)
 
 
 def score_watchlist(

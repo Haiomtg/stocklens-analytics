@@ -79,3 +79,26 @@ def test_random_walk_gets_honest_negative_verdict():
     out = fc.run_experiment(price, initial_train=756)
     assert {"logistic", "random_forest", "always_up", "last_month_repeats"} <= set(out["summary"].index)
     assert out["verdict"].startswith("No model clearly beat")
+
+
+def test_many_stock_summary_applies_multiple_testing_correction():
+    import numpy as np
+    import pandas as pd
+    from stocklens.models import forecasting as fc
+
+    rng = np.random.default_rng(5)
+    idx = pd.bdate_range("2015-01-01", periods=1700)
+    prices = pd.DataFrame({f"S{i}": 100 * np.exp(np.cumsum(rng.normal(0.0003, 0.012, 1700))) for i in range(3)}, index=idx)
+    seen = []
+    table = fc.run_experiment_many(prices, progress=lambda i, n, s: seen.append(s))
+    assert seen == ["S0", "S1", "S2"]
+    assert (table["p_adj_all"] >= table["p_adj_models"]).all() and table["p_adj_all"].max() <= 1.0
+    text = fc.summarize_many(table)
+    assert "Tested 3 stocks" in text
+
+
+def test_many_stock_summary_handles_nothing_testable():
+    import pandas as pd
+    from stocklens.models import forecasting as fc
+
+    assert "enough history" in fc.summarize_many(pd.DataFrame({"note": ["x"]}, index=["A"]))

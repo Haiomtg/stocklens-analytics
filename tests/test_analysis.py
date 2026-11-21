@@ -74,3 +74,14 @@ def test_peer_comparison_uses_sector_median():
     out = valuation.peer_comparison(f, "A")
     assert out.loc["pe", "peer_median"] == pytest.approx(25.0)  # median of 20 and 30
     assert out.attrs["scope"] == "sector peers"
+
+
+def test_momentum_uses_each_symbols_own_trading_days():
+    """Regression: US stocks showed momentum=None because a shared US+ASX table has NaN on US holidays."""
+    idx = pd.bdate_range("2024-01-01", periods=300)
+    a = pd.Series(np.linspace(100, 160, 300), index=idx)   # trades every day
+    b = a.copy()
+    b.iloc[[-22, -253]] = np.nan                           # market closed on exactly the rows the old code read
+    out = valuation.momentum_12_1(pd.DataFrame({"A": a, "B": b}))
+    assert out.notna().all()
+    assert out["B"] == pytest.approx(out["A"], rel=0.05)

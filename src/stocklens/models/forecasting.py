@@ -147,16 +147,28 @@ def verdict(summary: pd.DataFrame, alpha: float = 0.05) -> str:
             "Stock direction over this horizon is close to unpredictable from these features - an honest negative result.")
 
 
-def run_experiment_many(prices: pd.DataFrame, **kw) -> pd.DataFrame:
-    """Run the experiment per symbol; return one row per symbol for the README table."""
+def run_experiment_many(prices: pd.DataFrame, progress=None, **kw) -> pd.DataFrame:
+    """Run the experiment on every symbol; one row per symbol.
+
+    Columns: best_model / best_vs_baseline_pp (the better of logistic and forest, as in `verdict`),
+    p_adj_models (that model's p-value x2, because two models were tried) and p_adj_all
+    (p_adj_models x number of stocks tested: Bonferroni, because many stocks were tried).
+    `progress(i, n, symbol)` is called before each symbol so a UI can show a progress bar."""
     rows = []
-    for sym in prices.columns:
+    syms = list(prices.columns)
+    for i, sym in enumerate(syms):
+        if progress:
+            progress(i, len(syms), sym)
         try:
             res = run_experiment(prices[sym].dropna(), **kw)
         except ValueError as exc:
             rows.append({"symbol": sym, "note": str(exc)})
             continue
         s = res["summary"]
+        ml = s.loc[["logistic", "random_forest"]]
+        best = ml["vs_always_up_pp"].idxmax()
+        p = ml.loc[best, "p_value_vs_always_up"]
+        p = 1.0 if pd.isna(p) else float(p)  # NaN = predictions never differed from the baseline
         rows.append(
             {
                 "symbol": sym,
@@ -164,8 +176,32 @@ def run_experiment_many(prices: pd.DataFrame, **kw) -> pd.DataFrame:
                 "baseline_acc": s.loc["always_up", "accuracy"],
                 "logistic_acc": s.loc["logistic", "accuracy"],
                 "forest_acc": s.loc["random_forest", "accuracy"],
-                "best_vs_baseline_pp": s.loc[["logistic", "random_forest"], "vs_always_up_pp"].max(),
-                "best_p_value": s.loc[["logistic", "random_forest"], "p_value_vs_always_up"].min(),
+                "best_model": best,
+                "best_vs_baseline_pp": float(ml.loc[best, "vs_always_up_pp"]),
+                "p_adj_models": min(1.0, p * 2),
             }
         )
-    return pd.DataFrame(rows).set_index("symbol")
+    out = pd.DataFrame(rows).set_index("symbol")
+    if "p_adj_models" in out:
+        n_tested = int(out["p_adj_models"].notna().sum())
+        out["p_adj_all"] = (out["p_adj_models"] * n_tested).clip(upper=1.0)
+    return out
+
+
+def summarize_many(table: pd.DataFrame, alpha: float = 0.05) -> str:
+    """Plain-English reading of `run_experiment_many`, including how many wins luck alone would give."""
+    if "p_adj_all" not in table or table["p_adj_all"].notna().sum() == 0:
+        return "No stock had enough history to test."
+    t = table.dropna(subset=["p_adj_all"])
+    n = len(t)
+    ahead = int((t["best_vs_baseline_pp"] > 0).sum())
+    hits_each = int(((t["best_vs_baseline_pp"] > 0) & (t["p_adj_models"] < alpha)).sum())
+    hits_all = int(((t["best_vs_baseline_pp"] > 0) & (t["p_adj_all"] < alpha)).sum())
+    return (
+        f"Tested {n} stocks. A model was ahead of the always-up baseline on {ahead} of them (even a coin flip "
+        f"would do that on about half). {hits_each} looked significant on their own (p<{alpha}); "
+        f"{hits_all} stayed significant after correcting for testing {n} stocks. "
+        f"By luck alone you would expect about {alpha * n:.1f} 'significant' stocks without that correction. "
+        + ("Nothing survives the correction: an honest negative result." if hits_all == 0
+           else "Treat any survivor as a lead to re-test on other periods or markets, not a trading signal.")
+    )
