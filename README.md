@@ -6,7 +6,7 @@ A Python analytics backend for ASX, US and Vietnamese equities: automated data p
 
 It is the numbers layer that sits behind **StockLens** (my document-reading app that extracts figures from company reports).
 
-**Live demo:** _<add your Streamlit Community Cloud link here>_ (runs on synthetic sample data - no real holdings are published)
+**Live demo:** [stocklens-analytics-nobw8wopa4c7m9bh9pkedp.streamlit.app](https://stocklens-analytics-nobw8wopa4c7m9bh9pkedp.streamlit.app/) (runs on synthetic sample data - no real holdings are published; the app may take a moment to wake up if it has been idle)
 
 ![Portfolio page (synthetic demo data)](docs/images/portfolio.png)
 ![Risk page (synthetic demo data)](docs/images/risk.png)
