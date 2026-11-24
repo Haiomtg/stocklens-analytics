@@ -8,7 +8,11 @@ It is the numbers layer that sits behind **StockLens** (my document-reading app 
 
 **Live demo:** _<add your Streamlit Community Cloud link here>_ (runs on synthetic sample data - no real holdings are published)
 
-<!-- Add 2-3 screenshots here: Portfolio page, Risk page, Backtests page -->
+![Portfolio page (synthetic demo data)](docs/images/portfolio.png)
+![Risk page (synthetic demo data)](docs/images/risk.png)
+![Backtests page (synthetic demo data)](docs/images/backtests.png)
+
+_Screenshots use generated sample data, not real prices or holdings._
 
 ## Headline result
 
@@ -48,7 +52,7 @@ Each month-end, hold the top 3 of the 16 stocks by 126-day return (equal weight,
 Concentrating in three recent winners added risk and trading costs without adding return.
 
 ### Data quality
-The pipeline checks every price series for gaps, outliers, suspected unadjusted splits, bad bars and stale data. It only flags problems and never changes the data. On the 18 series in this database it raised 54 flags: 53 large one-day price moves ("outliers") and 1 bad bar (CBA.AX, 2024-11-15: close outside the day's high-low range, likely a source error). Spot checks of the outliers match known market events (the March 2020 crash, the April 2025 tariff-pause rally, NVIDIA earnings days), so they were kept.
+The pipeline checks every price series for gaps, outliers, suspected unadjusted splits, bad bars and stale data. It only flags problems and never changes the data. On the 18 series in the 19 Nov 2026 snapshot it raised 54 flags: 53 large one-day price moves ("outliers") and 1 bad bar (CBA.AX, 2024-11-15: close outside the day's high-low range, likely a source error). Spot checks of the outliers match known market events (the March 2020 crash, the April 2025 tariff-pause rally, NVIDIA earnings days), so they were kept.
 
 ## What it does
 
